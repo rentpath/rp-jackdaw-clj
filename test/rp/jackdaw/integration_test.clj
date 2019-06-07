@@ -2,7 +2,6 @@
   (:require [clojure.test :refer :all]
             [rp.jackdaw.processor :as processor]
             [rp.jackdaw.topic-registry :as registry]
-            [rp.jackdaw.resolver :as resolver]
             [jackdaw.streams :as streams]
             [com.stuartsierra.component :as component]
             [cheshire.core :as json]))
@@ -59,16 +58,13 @@
                                  :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
                                                :key? false
                                                :schema (json/encode output-schema)}}}
-        system-map (component/system-map
-                    :serde-resolver (resolver/map->MockSerdeResolver {})
-                    :topic-registry (component/using
-                                     (registry/map->TopicRegistry {:topic-metadata topic-metadata})
-                                     [:serde-resolver])
-                    :processor (component/using
-                                ;; Note that a real Processor would also need `:app-config` with at least `"application.id"` and `"bootstrap.servers"`.
-                                (processor/map->MockProcessor {:topology-builder-fn topology-builder-fn})
-                                [:topic-registry]))
-        sys (component/start system-map)
+        sys (component/system-map
+             :topic-registry (registry/map->MockTopicRegistry {:topic-metadata topic-metadata})
+             :processor (component/using
+                         ;; Note that a real Processor would also need `:app-config` with at least `"application.id"` and `"bootstrap.servers"`.
+                         (processor/map->MockProcessor {:topology-builder-fn topology-builder-fn})
+                         [:topic-registry]))
+        sys (component/start sys)
         processor (:processor sys)]
     (is (= [] (processor/mock-get-keyvals processor :output)))
     (processor/mock-publish processor :input "a" {:n 5})
@@ -79,4 +75,5 @@
            (processor/mock-get-keyvals processor :output)))
     (processor/mock-publish processor :input "a" {:n 9})
     (is (= [["a" {:total 21 :count 3 :average 7.0}]]
-           (processor/mock-get-keyvals processor :output)))))
+           (processor/mock-get-keyvals processor :output)))
+    (component/stop sys)))

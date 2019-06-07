@@ -74,32 +74,32 @@
 
 (comment
   (require '[rp.jackdaw.topic-registry :as registry])
-  (require '[rp.jackdaw.resolver :as resolver])
   (require '[cheshire.core :as json])
 
-  (def topic-metadata {:topic-name "foo"
-                       :partition-count 1
-                       :replication-factor 1
-                       :key-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                   :schema (json/encode "string")
-                                   :key? true}
-                       :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                     :schema (json/encode {:type "record"
-                                                           :name "Demo"
-                                                           :fields [{:name "x"
-                                                                     :type "string"}]})
-                                     :key? false}})
-  (def serde-resolver (resolver/map->SerdeResolver {:schema-registry-url "http://localhost:8081"}))
-  (def serde-resolver (component/start serde-resolver))
-  (def topic-registry (registry/map->TopicRegistry
-                       {:serde-resolver serde-resolver
-                        :topic-metadata {:target topic-metadata}}))
-  (def topic-registry (component/start topic-registry))
-  (def producer (map->Producer
-                 {:producer-config {"bootstrap.servers" "localhost:9092"}
-                  :topic-registry topic-registry
-                  :topic-kw :target}))
-  (def producer (component/start producer))
+  (def topic-metadata {:target
+                       {:topic-name "foo"
+                        :partition-count 1
+                        :replication-factor 1
+                        :key-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
+                                    :schema (json/encode "string")
+                                    :key? true}
+                        :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
+                                      :schema (json/encode {:type "record"
+                                                            :name "Demo"
+                                                            :fields [{:name "x"
+                                                                      :type "string"}]})
+                                      :key? false}}})
+  (def sys (component/system-map
+            :topic-registry (registry/map->TopicRegistry
+                             {:topic-metadata topic-metadata
+                              :schema-registry-url "http://localhost:8081"})
+            :producer (component/using
+                       (map->Producer
+                        {:producer-config {"bootstrap.servers" "localhost:9092"}
+                         :topic-kw :target})
+                       [:topic-registry])))
+  (def sys (component/start sys))
+  (def producer (:producer sys))
   @(produce! producer "a_key" {:x "Hello"})
-  (def producer (component/stop producer))
-)
+  (def sys (component/stop sys))
+  )

@@ -72,7 +72,6 @@
 
 (comment
   (require '[rp.jackdaw.topic-registry :as registry])
-  (require '[rp.jackdaw.resolver :as resolver])
   (require '[cheshire.core :as json])
 
   (def topic-metadata {:input
@@ -88,12 +87,6 @@
                                                             :fields [{:name "x"
                                                                       :type "string"}]})
                                       :key? false}}})
-  (def serde-resolver (resolver/map->SerdeResolver {:schema-registry-url "http://localhost:8081"}))
-  (def serde-resolver (component/start serde-resolver))
-  (def topic-registry (registry/map->TopicRegistry
-                       {:serde-resolver serde-resolver
-                        :topic-metadata topic-metadata}))
-  (def topic-registry (component/start topic-registry))
 
   ;; One can build arbitrarily complex topologies (with multiple input and/or output topics).
   ;; This example is a simple consumer-like topology that consumes messages from a single topic and performs some action for each record.
@@ -104,11 +97,18 @@
           (streams/for-each! (fn [[k v]] (clojure.pprint/pprint {:key k :value v}))))
       builder))
 
-  (def processor (map->Processor
-                  {:app-config {"application.id" "demo-processor"
-                                "bootstrap.servers" "localhost:9092"}
-                   :topic-registry topic-registry
-                   :topology-builder-fn topology-builder-fn}))
-  (def processor (component/start processor))
-  (def processor (component/stop processor))
-)
+  (def sys (component/system-map
+            :topic-registry (registry/map->TopicRegistry
+                             {:topic-metadata topic-metadata
+                              :schema-registry-url "http://localhost:8081"})
+            :processor (component/using
+                        (map->Processor
+                         {:app-config {"application.id" "demo-processor"
+                                       "bootstrap.servers" "localhost:9092"}
+                          :topology-builder-fn topology-builder-fn})
+                        [:topic-registry])))
+
+  (def sys (component/start sys))
+  ;; The processor is now running... watch stdout as it consumes the input topic.
+  (def sys (component/stop sys))
+  )

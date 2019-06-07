@@ -1,7 +1,6 @@
 (ns rp.jackdaw.resolver
   (:require [jackdaw.serdes.resolver :as resolver]
-            [jackdaw.serdes.avro.schema-registry :as registry]
-            [com.stuartsierra.component :as component]))
+            [jackdaw.serdes.avro.schema-registry :as registry]))
 
 ;; Note: When `type-registry` is `nil`, it defaults to `jackdaw.serdes.avro/+base-schema-type-registry+`.
 
@@ -36,17 +35,3 @@
                (assoc m k (resolve-topic v resolve-serde)))
              {}
              topics-metadata))
-
-(defrecord SerdeResolver [schema-registry-url type-registry]
-  component/Lifecycle
-  (start [this]
-    (assoc this :resolver (serde-resolver schema-registry-url type-registry)))
-  (stop [this]
-    this))
-
-(defrecord MockSerdeResolver [type-registry]
-  component/Lifecycle
-  (start [this]
-    (assoc this :resolver (mock-serde-resolver type-registry)))
-  (stop [this]
-    this))
