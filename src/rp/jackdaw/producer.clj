@@ -101,5 +101,12 @@
   (def sys (component/start sys))
   (def producer (:producer sys))
   @(produce! producer "a_key" {:x "Hello"})
+
+  ;; Want to consume the message you just produced?
+  ;; One convenient option in the repl is to use the utility fns from rp.jackdaw.user like so...
+  (require '[rp.jackdaw.user :as user])
+  (user/get-keyvals (user/consumer-config)
+                    (get-in sys [:topic-registry :topic-configs :target]))
+
   (def sys (component/stop sys))
   )

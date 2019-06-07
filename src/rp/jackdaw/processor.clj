@@ -110,5 +110,11 @@
 
   (def sys (component/start sys))
   ;; The processor is now running... watch stdout as it consumes the input topic.
+  ;; One convenient option in the repl is to use the utility fns from rp.jackdaw.user like so...
+  (require '[rp.jackdaw.user :as user])
+  (user/publish (user/producer-config)
+                (get-in sys [:topic-registry :topic-configs :input])
+                "some_key" {:x "Ahoy"})
+
   (def sys (component/stop sys))
   )
