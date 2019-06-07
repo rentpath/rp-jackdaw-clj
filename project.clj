@@ -5,7 +5,9 @@
             :url "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.stuartsierra/component "0.4.0"]
-                 [fundingcircle/jackdaw "0.6.3"]
+                 [fundingcircle/jackdaw "0.6.4"]
+                 ;; FIXME: remove the following after jackdaw 0.6.5 released
+                 [org.apache.kafka/kafka-streams-test-utils "2.2.0"]
                  [cheshire "5.8.0"]]
   :scm {:url "git@github.com:rentpath/rp-jackdaw-clj.git"}
   :deploy-repositories [["releases" {:url "https://clojars.org/repo/"

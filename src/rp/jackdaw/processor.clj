@@ -1,10 +1,23 @@
 (ns rp.jackdaw.processor
   "Lightweight component wrapper around jackdaw Streams (DSL) processor app."
   (:require [com.stuartsierra.component :as component]
-            [jackdaw.streams :as streams]))
+            [jackdaw.streams :as streams]
+            [jackdaw.streams.mock :as mock]))
 
 (def app-config-defaults
   {"default.deserialization.exception.handler" "org.apache.kafka.streams.errors.LogAndContinueExceptionHandler"})
+
+;; Perform most of the component startup (up to building the topology).
+;; From this point one could either start an actual streams app or create a toplogy test driver.
+(defn- init-component
+  [{:keys [topic-registry topology-builder-fn] :as component} streams-builder-fn]
+   ;; Add topic-configs as a courtesy for the topology-builder-fn (one less layer to dig thru to get a specific topic config).
+  (let [component (assoc component :topic-configs (:topic-configs topic-registry))
+        builder (streams-builder-fn)
+        topology ((topology-builder-fn component) builder)]
+    (assoc component
+           :builder builder
+           :topology topology)))
 
 ;; `app-config` is a map of string KVs containing config properties.
 ;; See https://kafka.apache.org/documentation/#streamsconfigs
@@ -16,17 +29,46 @@
 (defrecord Processor [app-config topic-registry topology-builder-fn]
   component/Lifecycle
   (start [this]
-    ;; Add topic-configs as a courtesy for the topology-builder-fn (one less layer to dig thru to get a specific topic config).
-    (let [component (assoc this :topic-configs (:topic-configs topic-registry))
-          builder (streams/streams-builder)
-          topology ((topology-builder-fn component) builder)
-          app (streams/kafka-streams topology (merge app-config-defaults app-config))]
+    (let [component (init-component this streams/streams-builder)
+          app (streams/kafka-streams (:topology component)
+                                     (merge app-config-defaults app-config))]
       (streams/start app)
       (assoc component :app app)))
   (stop [{:keys [app] :as this}]
     (when app
       (streams/close app))
     (dissoc this :app)))
+;;
+;; A MockProcessor for unit testing a processor in isolation.
+;;
+(defrecord MockProcessor [topic-registry topology-builder-fn]
+  component/Lifecycle
+  (start [this]
+    (let [component (init-component this mock/streams-builder)
+          driver (mock/streams-builder->test-driver (:builder component))]
+      (assoc component :driver driver)))
+  (stop [this]
+    (dissoc this :driver)))
+;;
+;; Helpers for working with a mock processor
+;;
+
+(defn mock-publish
+  "Publish a KV to a specific topic of a mock processor (with optional timestamp)."
+  ([mock-processor topic-kw time-ms k v]
+   (let [args [(:driver mock-processor)
+               (get-in mock-processor [:topic-configs topic-kw])]
+         args (cond-> args time-ms (conj time-ms))
+         args (conj args k v)]
+     (apply mock/publish args)))
+  ([mock-processor topic-kw k v]
+   (mock-publish mock-processor topic-kw nil k v)))
+
+(defn mock-get-keyvals
+  "Get KV pairs from a specific output topic of a mock processor."
+  [mock-processor topic-kw]
+  (mock/get-keyvals (:driver mock-processor)
+                    (get-in mock-processor [:topic-configs topic-kw])))
 
 (comment
   (require '[rp.jackdaw.topic-registry :as registry])

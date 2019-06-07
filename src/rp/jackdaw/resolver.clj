@@ -43,3 +43,10 @@
     (assoc this :resolver (serde-resolver schema-registry-url type-registry)))
   (stop [this]
     this))
+
+(defrecord MockSerdeResolver [type-registry]
+  component/Lifecycle
+  (start [this]
+    (assoc this :resolver (mock-serde-resolver type-registry)))
+  (stop [this]
+    this))
