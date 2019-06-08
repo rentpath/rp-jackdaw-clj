@@ -38,9 +38,11 @@
     (when app
       (streams/close app))
     (dissoc this :app)))
+
 ;;
 ;; A MockProcessor for unit testing a processor in isolation.
 ;;
+
 (defrecord MockProcessor [topic-registry topology-builder-fn]
   component/Lifecycle
   (start [this]
@@ -49,6 +51,7 @@
       (assoc component :driver driver)))
   (stop [this]
     (dissoc this :driver)))
+
 ;;
 ;; Helpers for working with a mock processor
 ;;
@@ -110,7 +113,8 @@
 
   (def sys (component/start sys))
   ;; The processor is now running... watch stdout as it consumes the input topic.
-  ;; One convenient option in the repl is to use the utility fns from rp.jackdaw.user like so...
+  ;; If there aren't some records already in the topic, you could produce some however you like (for example using kafka-avro-console-producer or the Producer component from this lib).
+  ;; A convenient option in the repl is to use the utility fns from rp.jackdaw.user like so...
   (require '[rp.jackdaw.user :as user])
   (user/publish (user/producer-config)
                 (get-in sys [:topic-registry :topic-configs :input])
