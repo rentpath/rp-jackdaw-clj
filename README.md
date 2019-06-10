@@ -1,4 +1,4 @@
-# rp-jackdaw-clj
+# rp-jackdaw-clj [![Clojars Project](https://img.shields.io/clojars/v/com.rentpath/rp-jackdaw-clj.svg)](https://clojars.org/com.rentpath/rp-jackdaw-clj)
 
 A Clojure library providing various components (using [Stuart Sierra's Component library](https://github.com/stuartsierra/component)) for interacting with Kafka using the [Jackdaw library](https://github.com/FundingCircle/jackdaw).
 
