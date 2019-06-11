@@ -19,6 +19,10 @@ Some misc utilities are also included:
 - a `state-store` namespace includes some functions for dealing with state stores (only useful if you're using the lower-level Processor API)
 - a `streams-extras` namespace includes a few odds and ends that I couldn't find in `jackdaw` that may be useful inside a topology builder
 
+## Status
+
+This library is still evolving and subject to breaking changes. Use at your own risk.
+
 ## Usage
 
 Refer to the `comment` blocks at the end of some of the source files for some REPL-friendly examples:
