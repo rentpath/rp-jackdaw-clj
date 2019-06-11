@@ -2,8 +2,11 @@
   "Lightweight component wrapper around jackdaw Streams (DSL) processor app."
   (:require [com.stuartsierra.component :as component]
             [jackdaw.streams :as streams]
-            [jackdaw.streams.mock :as mock]))
+            [jackdaw.streams.mock :as mock])
+  (:import [org.apache.kafka.streams KafkaStreams]))
 
+;; This may be opinionated, but it seems like a saner default than the real default (which stops the app when a deserialization error occurs).
+;; One can always override these defaults via custom app-config passed to the component.
 (def app-config-defaults
   {"default.deserialization.exception.handler" "org.apache.kafka.streams.errors.LogAndContinueExceptionHandler"})
 
@@ -19,6 +22,11 @@
            :builder builder
            :topology topology)))
 
+;; Given an initialized processor component, create the Streams app and return it.
+(defn- init-app
+  [{:keys [topology app-config] :as component}]
+  (streams/kafka-streams topology (merge app-config-defaults app-config)))
+
 ;; `app-config` is a map of string KVs containing config properties.
 ;; See https://kafka.apache.org/documentation/#streamsconfigs
 ;; At a minimum it must contain "application.id" and "bootstrap.servers".
@@ -30,14 +38,20 @@
   component/Lifecycle
   (start [this]
     (let [component (init-component this streams/streams-builder)
-          app (streams/kafka-streams (:topology component)
-                                     (merge app-config-defaults app-config))]
+          app (init-app component)]
       (streams/start app)
       (assoc component :app app)))
   (stop [{:keys [app] :as this}]
     (when app
       (streams/close app))
-    (dissoc this :app)))
+    (dissoc this :app :builder :topology)))
+
+(defn cleanup!
+  "Delete the local state store directory. Will throw an exception when the Streams app is currently running, so best to call this before starting or after stopping."
+  [component]
+  (let [app (or (:app component)
+                (init-app (init-component component streams/streams-builder)))]
+    (.cleanUp ^KafkaStreams app)))
 
 ;;
 ;; A MockProcessor for unit testing a processor in isolation.
@@ -50,7 +64,7 @@
           driver (mock/streams-builder->test-driver (:builder component))]
       (assoc component :driver driver)))
   (stop [this]
-    (dissoc this :driver)))
+    (dissoc this :driver :builder :topology)))
 
 ;;
 ;; Helpers for working with a mock processor

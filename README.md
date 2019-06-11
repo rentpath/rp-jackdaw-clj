@@ -35,6 +35,9 @@ For a subscriber, we recommend unit testing the callback function itself (which 
 
 You may also want to create an end-to-end system test that uses non-mock components and connects to an actual Kafka cluster.
 It's hard to make a specific recommendation for that since that are many ways you might run your test cluster.
+However to setup and teardown topics you may find the topic-related functions in the `user` namespace helpful. You may also need to remove state store directories; there's a `cleanup!` function in the `processor` namespace for that.
+
+If you're using a shared cluster for testing, you'll probably want to make sure that your topic names and `application.id` values are unique for each test run. One approach would be to generate some unique string (such as a timestamp or a random UUID) and prepend or append it to each name in your system config map before starting the system. In your teardown you could use the `re-delete-topics!` function to delete all topics containing that unique value. That will ensure that all topics (even internal topics created as changelogs for state stores, which are named based on the `application.id`) are deleted.
 
 ## License
 
