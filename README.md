@@ -13,7 +13,7 @@ Some misc utilities are also included:
 - a `user` namespace includes some functions intended for use in the REPL for:
   - listing topics
   - creating topics
-  - publishing to a topic
+  - producing to a topic
   - consuming from a topic
 - a `schema` namespace include a function to fetch a specific version of an Avro schema from a Confluent Schema Registry
 - a `state-store` namespace includes some functions for dealing with state stores (only useful if you're using the lower-level Processor API)

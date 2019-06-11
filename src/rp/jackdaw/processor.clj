@@ -56,8 +56,8 @@
 ;; Helpers for working with a mock processor
 ;;
 
-(defn mock-publish
-  "Publish a KV to a specific topic of a mock processor (with optional timestamp)."
+(defn mock-produce!
+  "Produce a KV to a specific topic of a mock processor (with optional timestamp)."
   ([mock-processor topic-kw time-ms k v]
    (let [args [(:driver mock-processor)
                (get-in mock-processor [:topic-configs topic-kw])]
@@ -65,7 +65,7 @@
          args (conj args k v)]
      (apply mock/publish args)))
   ([mock-processor topic-kw k v]
-   (mock-publish mock-processor topic-kw nil k v)))
+   (mock-produce! mock-processor topic-kw nil k v)))
 
 (defn mock-get-keyvals
   "Get KV pairs from a specific output topic of a mock processor."
@@ -116,9 +116,9 @@
   ;; If there aren't some records already in the topic, you could produce some however you like (for example using kafka-avro-console-producer or the Producer component from this lib).
   ;; A convenient option in the repl is to use the utility fns from rp.jackdaw.user like so...
   (require '[rp.jackdaw.user :as user])
-  (user/publish (user/producer-config)
-                (get-in sys [:topic-registry :topic-configs :input])
-                "some_key" {:x "Ahoy"})
+  (user/produce! (user/producer-config)
+                 (get-in sys [:topic-registry :topic-configs :input])
+                 "some_key" {:x "Ahoy"})
 
   (def sys (component/stop sys))
   )

@@ -1,7 +1,8 @@
 (ns rp.jackdaw.producer
   "Lightweight component wrapper around jackdaw producer client."
   (:require [com.stuartsierra.component :as component]
-            [jackdaw.client :as client]))
+            [jackdaw.client :as client])
+  (:import [org.apache.kafka.clients.producer KafkaProducer]))
 
 (defprotocol IProducer
   (produce!
@@ -52,8 +53,8 @@
              :producer (client/producer producer-config topic-config))))
   (stop [{:keys [producer] :as this}]
     (when producer
-      (.flush ^Producer producer)
-      (.close ^Producer producer))
+      (.flush ^KafkaProducer producer)
+      (.close ^KafkaProducer producer))
     (dissoc this :producer))
 
   IProducer
