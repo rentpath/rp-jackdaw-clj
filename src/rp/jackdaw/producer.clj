@@ -10,32 +10,6 @@
     [this key value]
     [this value]))
 
-;; A mock implementation for tests that keeps a record of all produce! calls in an atom.
-(defrecord MockProducer [store]
-  IProducer
-  (produce! [this partition k v]
-    (swap! store
-           conj
-           {:k k
-            :v v
-            :partition partition})
-    nil)
-  (produce! [this k v]
-    (produce! this nil k v))
-  (produce! [this v]
-    (produce! this nil nil v)))
-
-;; Convenience factory fn
-(defn make-mock-producer
-  []
-  (->MockProducer (atom [])))
-
-;; Mock helper
-(defn get-mock-data
-  [mock-producer]
-  @(:store mock-producer))
-
-
 ;; `producer-config` is a map of string KVs containing config properties.
 ;; See https://kafka.apache.org/documentation/#producerconfigs
 ;; At a minimum is must contain "bootstrap.servers".
@@ -73,6 +47,32 @@
     (client/produce! producer topic-config key value))
   (produce! [{:keys [producer topic-config]} partition key value]
     (client/produce! producer topic-config partition key value)))
+
+;; A mock implementation for tests that keeps a record of all produce! calls in an atom.
+(defrecord MockProducer [store]
+  IProducer
+  (produce! [this partition k v]
+    (swap! store
+           conj
+           {:k k
+            :v v
+            :partition partition})
+    ;; Return a future for consistency with the real producer, but don't bother trying to build a fake success map.
+    (future nil))
+  (produce! [this k v]
+    (produce! this nil k v))
+  (produce! [this v]
+    (produce! this nil nil v)))
+
+;; Convenience factory fn
+(defn make-mock-producer
+  []
+  (->MockProducer (atom [])))
+
+;; Mock helper
+(defn get-mock-data
+  [mock-producer]
+  @(:store mock-producer))
 
 (comment
   (require '[rp.jackdaw.topic-registry :as registry])
