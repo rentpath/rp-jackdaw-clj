@@ -67,13 +67,13 @@
         sys (component/start sys)
         processor (:processor sys)]
     (is (= [] (processor/mock-get-keyvals processor :output)))
-    (processor/mock-publish processor :input "a" {:n 5})
+    (processor/mock-produce! processor :input "a" {:n 5})
     (is (= [["a" {:total 5 :count 1 :average 5.0}]]
            (processor/mock-get-keyvals processor :output)))
-    (processor/mock-publish processor :input "a" {:n 7})
+    (processor/mock-produce! processor :input "a" {:n 7})
     (is (= [["a" {:total 12 :count 2 :average 6.0}]]
            (processor/mock-get-keyvals processor :output)))
-    (processor/mock-publish processor :input "a" {:n 9})
+    (processor/mock-produce! processor :input "a" {:n 9})
     (is (= [["a" {:total 21 :count 3 :average 7.0}]]
            (processor/mock-get-keyvals processor :output)))
     (component/stop sys)))

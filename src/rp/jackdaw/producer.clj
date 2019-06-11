@@ -1,38 +1,14 @@
 (ns rp.jackdaw.producer
   "Lightweight component wrapper around jackdaw producer client."
   (:require [com.stuartsierra.component :as component]
-            [jackdaw.client :as client]))
+            [jackdaw.client :as client])
+  (:import [org.apache.kafka.clients.producer KafkaProducer]))
 
 (defprotocol IProducer
   (produce!
     [this partition key value]
     [this key value]
     [this value]))
-
-;; A mock implementation for tests that keeps a record of all produce! calls in an atom.
-(defrecord MockProducer [store]
-  IProducer
-  (produce! [this partition k v]
-    (swap! store
-           conj
-           {:k k
-            :v v
-            :partition partition}))
-  (produce! [this k v]
-    (produce! this nil k v))
-  (produce! [this v]
-    (produce! this nil nil v)))
-
-;; Convenience factory fn
-(defn mock-producer
-  []
-  (->MockProducer (atom [])))
-
-;; Mock helper
-(defn get-mock-store
-  [producer]
-  @(:store producer))
-
 
 ;; `producer-config` is a map of string KVs containing config properties.
 ;; See https://kafka.apache.org/documentation/#producerconfigs
@@ -52,8 +28,8 @@
              :producer (client/producer producer-config topic-config))))
   (stop [{:keys [producer] :as this}]
     (when producer
-      (.flush ^Producer producer)
-      (.close ^Producer producer))
+      (.flush ^KafkaProducer producer)
+      (.close ^KafkaProducer producer))
     (dissoc this :producer))
 
   IProducer
@@ -71,6 +47,32 @@
     (client/produce! producer topic-config key value))
   (produce! [{:keys [producer topic-config]} partition key value]
     (client/produce! producer topic-config partition key value)))
+
+;; A mock implementation for tests that keeps a record of all produce! calls in an atom.
+(defrecord MockProducer [store]
+  IProducer
+  (produce! [this partition k v]
+    (swap! store
+           conj
+           {:k k
+            :v v
+            :partition partition})
+    ;; Return a future for consistency with the real producer, but don't bother trying to build a fake success map.
+    (future nil))
+  (produce! [this k v]
+    (produce! this nil k v))
+  (produce! [this v]
+    (produce! this nil nil v)))
+
+;; Convenience factory fn
+(defn make-mock-producer
+  []
+  (->MockProducer (atom [])))
+
+;; Mock helper
+(defn get-mock-data
+  [mock-producer]
+  @(:store mock-producer))
 
 (comment
   (require '[rp.jackdaw.topic-registry :as registry])
