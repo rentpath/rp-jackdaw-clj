@@ -10,20 +10,20 @@
 
 (defprotocol KVStore
   (get-key [this k] "Gets the value for key")
-  (set-key [this k v] "Sets the value for key; deletes key when value is nil."))
+  (set-key! [this k v] "Sets the value for key; deletes key when value is nil."))
 
 (extend-type KeyValueStore
   KVStore
   (get-key [this k]
     (.get this (name k)))
-  (set-key [this k v]
+  (set-key! [this k v]
     (.put this (name k) v)))
 
 (defrecord MockKVStore [store]
   KVStore
   (get-key [this k]
     (get @store (keyword k)))
-  (set-key [this k v]
+  (set-key! [this k v]
     (if v
       (swap! store assoc (keyword k) v)
       (swap! store dissoc (keyword k)))
@@ -51,9 +51,9 @@
   (let [v (get-key kvstore k)]
     (and v (json/decode v true))))
 
-(defn set-json
+(defn set-json!
   [kvstore k v]
-  (set-key kvstore k (and v (json/encode v))))
+  (set-key! kvstore k (and v (json/encode v))))
 
 ;;
 ;; Misc
