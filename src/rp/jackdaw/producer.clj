@@ -18,21 +18,22 @@
            conj
            {:k k
             :v v
-            :partition partition}))
+            :partition partition})
+    nil)
   (produce! [this k v]
     (produce! this nil k v))
   (produce! [this v]
     (produce! this nil nil v)))
 
 ;; Convenience factory fn
-(defn mock-producer
+(defn make-mock-producer
   []
   (->MockProducer (atom [])))
 
 ;; Mock helper
-(defn get-mock-store
-  [producer]
-  @(:store producer))
+(defn get-mock-data
+  [mock-producer]
+  @(:store mock-producer))
 
 
 ;; `producer-config` is a map of string KVs containing config properties.
