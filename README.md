@@ -7,7 +7,7 @@ The components include:
 - a "subscriber" (a simple example of a stream processor that can be used like a consumer, but built on top of the Streams API instead of the lower-level Consumer API)
 - a producer
 - a topic registry (a dependency of the other components; a topic registry wraps a map of topic metadata and optional serde resolver config (schema registry url and type registry))
-- mock processor and registry components for use in tests
+- mock processor, producer and registry components for use in tests
 
 Some misc utilities are also included:
 - a `user` namespace includes some functions intended for use in the REPL for:
@@ -15,7 +15,7 @@ Some misc utilities are also included:
   - creating topics
   - producing to a topic
   - consuming from a topic
-- a `schema` namespace include a function to fetch a specific version of an Avro schema from a Confluent Schema Registry
+- a `schema` namespace includes a function to fetch a specific version of an Avro schema from a Confluent Schema Registry
 - a `state-store` namespace includes some functions for dealing with state stores (only useful if you're using the lower-level Processor API)
 - a `streams-extras` namespace includes a few odds and ends that I couldn't find in `jackdaw` that may be useful inside a topology builder
 
