@@ -4,7 +4,6 @@
   Nothing really jackdaw-specific here, but including in this library anyway.
   Useful when dealing with explicit state stores using the lower-level Processor API
   (for example via the Streams `transform` method)."
-  (:require [cheshire.core :as json])
   (:import [org.apache.kafka.streams.state KeyValueStore StoreBuilder Stores]
            [org.apache.kafka.common.serialization Serdes]))
 
@@ -29,21 +28,6 @@
     value-serde))
   ([store-name]
    (state-store-builder store-name (Serdes/String) (Serdes/String))))
-
-;;
-;; A couple of convenience functions for getting/setting JSON string values.
-;; These assume that the store was configured to use String serdes.
-;; Not appropriate when using the actual JSON serdes.
-;;
-
-(defn get-json
-  [kvstore k]
-  (let [v (get-key kvstore k)]
-    (and v (json/decode v true))))
-
-(defn set-json!
-  [kvstore k v]
-  (set-key! kvstore k (and v (json/encode v))))
 
 ;;
 ;; Misc
