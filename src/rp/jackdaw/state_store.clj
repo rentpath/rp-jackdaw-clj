@@ -4,8 +4,8 @@
   Nothing really jackdaw-specific here, but including in this library anyway.
   Useful when dealing with explicit state stores using the lower-level Processor API
   (for example via the Streams `transform` method)."
-  (:import [org.apache.kafka.streams.state KeyValueStore StoreBuilder Stores]
-           [org.apache.kafka.common.serialization Serdes]))
+  (:require [jackdaw.serdes.edn :as edn])
+  (:import [org.apache.kafka.streams.state KeyValueStore StoreBuilder Stores]))
 
 (defprotocol KVStore
   (get-key [this k] "Gets the value for key")
@@ -19,7 +19,7 @@
     (.put this (name k) v)))
 
 (defn state-store-builder
-  "Returns a builder (for use with `.addStateStore`) for a persistent store with the specified name and serdes. Defaults to String serdes."
+  "Returns a builder (for use with `.addStateStore`) for a persistent store with the specified name and serdes. Defaults to EDN serdes."
   ^StoreBuilder
   ([store-name key-serde value-serde]
    (Stores/keyValueStoreBuilder
@@ -27,7 +27,7 @@
     key-serde
     value-serde))
   ([store-name]
-   (state-store-builder store-name (Serdes/String) (Serdes/String))))
+   (state-store-builder store-name (edn/serde) (edn/serde))))
 
 ;;
 ;; Misc
