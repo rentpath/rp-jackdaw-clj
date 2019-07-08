@@ -10,10 +10,9 @@
 (defn topology-builder-fn
   [{:keys [topic-configs topic-kws callback-fn] :as component}]
   (fn [builder]
-    (doseq [topic-kw topic-kws]
-      (-> builder
-          (streams/kstream (get topic-configs topic-kw))
-          (streams/for-each! (fn [[k v]] (callback-fn {:component component :k k :v v})))))
+    (-> builder
+        (streams/kstreams (vals (select-keys topic-configs topic-kws)))
+        (streams/for-each! (fn [[k v]] (callback-fn {:component component :k k :v v}))))
     builder))
 
 (defn map->Subscriber
