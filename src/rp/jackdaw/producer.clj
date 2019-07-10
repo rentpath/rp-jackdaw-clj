@@ -83,14 +83,12 @@
                         :partition-count 1
                         :replication-factor 1
                         :key-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                    :schema (json/encode "string")
-                                    :key? true}
+                                    :schema (json/encode "string")}
                         :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
                                       :schema (json/encode {:type "record"
                                                             :name "Demo"
                                                             :fields [{:name "x"
-                                                                      :type "string"}]})
-                                      :key? false}}})
+                                                                      :type "string"}]})}}})
   (def sys (component/system-map
             :topic-registry (registry/map->TopicRegistry
                              {:topic-metadata topic-metadata

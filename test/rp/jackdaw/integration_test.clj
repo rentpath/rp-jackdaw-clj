@@ -46,17 +46,13 @@
                                 {:name "average" :type "double"}]}
         topic-metadata {:input {:topic-name "input"
                                 :key-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                            :key? true
                                             :schema (json/encode "string")}
                                 :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                              :key? false
                                               :schema (json/encode input-schema)}}
                         :output {:topic-name "output"
                                  :key-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                             :key? true
                                              :schema (json/encode "string")}
                                  :value-serde {:serde-keyword :jackdaw.serdes.avro.confluent/serde
-                                               :key? false
                                                :schema (json/encode output-schema)}}}
         sys (component/system-map
              :topic-registry (registry/map->MockTopicRegistry {:topic-metadata topic-metadata})
