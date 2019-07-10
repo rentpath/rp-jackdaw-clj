@@ -25,6 +25,12 @@
   "Resolve serdes for a single topic."
   [topic-metadata resolve-serde]
   (-> topic-metadata
+      ;; Currently (jackdaw 0.6.6) serde metadata requires a `:key?` boolean,
+      ;; however it seems redundant to me to always have to specify that flag
+      ;; as true for a `:key-serde` and as false for a `:value-serde`.
+      ;; Let's set the flags as a courtesy for our users so they can omit them.
+      (assoc-in [:key-serde :key?] true)
+      (assoc-in [:value-serde :key?] false)
       (update :key-serde resolve-serde)
       (update :value-serde resolve-serde)))
 
