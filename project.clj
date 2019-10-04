@@ -12,4 +12,5 @@
   :deploy-repositories [["releases" {:url "https://clojars.org/repo/"
                                      :username [:gpg :env/CLOJARS_USERNAME]
                                      :password [:gpg :env/CLOJARS_PASSWORD]
-                                     :sign-releases false}]])
+                                     :sign-releases false}]]
+  :aot [rp.jackdaw.serdes.homogeneous-edn])
