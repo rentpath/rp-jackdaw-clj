@@ -266,9 +266,8 @@
 
     ;; jodatime DateTimes need to be converted to native java.util.Date values in order to be
     ;; rendered using the inst reader macro.
-    (inst? data)
-    (if (= (class data) org.joda.time.DateTime)
-      (.toDate ^org.joda.time.DateTime data))
+    (= (class data) org.joda.time.DateTime)
+    (.toDate ^org.joda.time.DateTime data)
 
     :else
     data))
