@@ -63,11 +63,9 @@ else
     lein change version leiningen.release/bump-version release
 fi
 
-lein vcs commit
-
+lein vcs commit, vcs push
 export RELEASED_VERSION=v$(head -1 project.clj | awk '{print $3}' | tr -d '"')
 git tag -m "Release $RELEASED_VERSION" $RELEASED_VERSION
-
 lein do change version leiningen.release/bump-version
 lein do vcs commit, vcs push
 lein do deploy releases
