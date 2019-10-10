@@ -14,4 +14,6 @@
                                      :username [:gpg :env/CLOJARS_USERNAME]
                                      :password [:gpg :env/CLOJARS_PASSWORD]
                                      :sign-releases false}]]
-  :aot [rp.jackdaw.serdes.homogeneous-edn])
+  :aot [rp.jackdaw.serdes.homogeneous-edn
+        rp.jackdaw.serdes.key-serde
+        rp.jackdaw.serdes.value-serde])
