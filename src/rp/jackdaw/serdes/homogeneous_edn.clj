@@ -124,6 +124,7 @@
 
 (s/def ::array (s/or :vector vector?
                      :list list?
+                     :seq seq?
                      :set ::set))
 
 (s/def ::map (s/and map?
