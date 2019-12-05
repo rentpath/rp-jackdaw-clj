@@ -36,17 +36,17 @@
           (.softspace))))))
 
 (defn- seq-printer
-  [open-str close-str]
+  [open-str close-str & [soft-space?]]
   (reify Printer$Fn
     (eval [this s writer]
       (.append
         (reduce (fn [^Printer writer v]
                   (.printValue writer v))
-                (.append writer open-str)
+                (.append (if soft-space? (.softspace writer) writer) open-str)
                 s)
         close-str))))
 
-(def set-printer (seq-printer "#{" "}"))
+(def set-printer (seq-printer "#{" "}" true))
 (def vec-printer (seq-printer "[" "]"))
 (def list-printer (seq-printer "(" ")"))
 

@@ -153,4 +153,4 @@
                             :map    {"a" 1 "b" 2}
                             :struct {:a 1 :b 2}}
                            {:compact? true})
-           "{:int 1 :str\"hat\":kw :imakeyword :vec[1 2 3]:set#{1 3 2}:map{\"a\"1\"b\"2}:struct{:a 1 :b 2}}"))))
+           "{:int 1 :str\"hat\":kw :imakeyword :vec[1 2 3]:set #{1 3 2}:map{\"a\"1\"b\"2}:struct{:a 1 :b 2}}"))))
