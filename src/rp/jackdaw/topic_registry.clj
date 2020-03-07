@@ -21,13 +21,15 @@
 (defn resolve-schemata
   [topic-metadata schema-registry-url]
   (into {}
-        (map (fn [topic-kw {:keys [topic-name key-serde value-serde] :as topic-config}]
+        (map (fn [topic-kw {:keys [key-serde value-serde] :as topic-config}]
                (let [{key-serde-keyword :serde-keyword} key-serde
                      {value-serde-keyword :serde-keyword} value-serde]
                  [topic-kw (-> topic-config
-                               (= key-serde-keyword :jackdaw.serdes.avro.confluent/serde)
+                               (and (= key-serde-keyword :jackdaw.serdes.avro.confluent/serde)
+                                    (not (contains? key-serde :schema)))
                                (assoc-in [:key-serde :schema] (resolve-schema key-serde schema-registry-url))
-                               (= value-serde-keyword :jackdaw.serdes.avro.confluent/serde)
+                               (and (= value-serde-keyword :jackdaw.serdes.avro.confluent/serde)
+                                    (not (contains? key-serde :schema)))
                                (assoc-in [:key-serde :schema] (resolve-schema value-serde schema-registry-url)))])))
         topic-metadata))
 
