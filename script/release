@@ -50,7 +50,7 @@ git checkout master
 
 lein test
 
-lein vcs assert-committed
+#lein vcs assert-committed
 
 RELEASE_LEVEL="${1:-CURRENT_SNAPSHOT}"
 
