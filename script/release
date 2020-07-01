@@ -12,7 +12,7 @@
 # If a `release-level` argument is provided, the project will be
 # bumped to that level before releasing.
 
-set -eu
+set -euv
 
 E_BAD_ARGS=66
 
@@ -50,7 +50,7 @@ git checkout master
 
 lein test
 
-lein vcs assert-committed
+#lein vcs assert-committed
 
 RELEASE_LEVEL="${1:-CURRENT_SNAPSHOT}"
 
