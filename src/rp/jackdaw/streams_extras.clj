@@ -1,11 +1,12 @@
 (ns rp.jackdaw.streams-extras
   (:require [jackdaw.streams.interop])
-  (:import [org.apache.kafka.streams.kstream Merger Windows TimeWindows SessionWindows Suppressed Suppressed$BufferConfig KTable]
+  (:import [org.apache.kafka.streams.kstream Merger Windows TimeWindows SessionWindows
+                                             Suppressed Suppressed$BufferConfig KTable KStream]
+           [org.apache.kafka.streams.processor ProcessorSupplier Processor]
            [org.apache.kafka.streams StreamsBuilder]
            [org.apache.kafka.streams.state StoreBuilder]
            [java.time Duration]
-           [jackdaw.streams.interop CljKTable CljStreamsBuilder]))
-
+           [jackdaw.streams.interop CljKTable CljKStream CljStreamsBuilder]))
 ;;
 ;; Provide some "extras" missing from Jackdaw
 ;;
@@ -75,3 +76,39 @@
   [^CljStreamsBuilder builder ^StoreBuilder state-store-builder]
   (.addStateStore ^StreamsBuilder (.streams-builder builder) state-store-builder)
   builder)
+
+
+;; FundingCircle.jackdaw.streams/process! fn when passed a ^KStream invokes
+;; FundingCircle.jackdaw.streams.lambdas/processor-supplier which takes in a processor-fn and applies that
+;; fn as the body of the process method of a concrete implementation of the org.apache.kafka.streams.processor.Processor IFace
+;; (see FnProcessor type in FundingCircle.jackdaw.streams.lambdas). This is handy, but it does not work if you want to define
+;; your own implementation of the Kafka Processor IFace. An example of a problem with the FundingCircle.jackdaw FnProcessor
+;; type is that it does not allow you to define any scheduled (punctuated) callbacks in the init method since that
+;; method is already 'pre-defined'. For poi listings enrichment we need to define a scheduled callback to act as a batch timeout,
+;; so below we implement our own processor fn that calls a handrolled processor-supplier.
+(defprotocol IKStreamProcessor
+  (processor
+    [kstream processor-supplier-fn]
+    [kstream processor-supplier-fn state-store-names]
+    "Creates a KStream with the processor supplied by processor-supplier-fn attached to the topology.
+    The processor-supplier-fn should reify the org.apache.kafka.streams.processor.Processor IFace."))
+
+(deftype FnProcessorSupplierFactory [processor-supplier-fn]
+  ProcessorSupplier
+  (get [this]
+    (processor-supplier-fn)))
+
+(defn processor-supplier
+  "Packages up a Clojure fn in a kstream processor supplier."
+  [processor-supplier-fn]
+  (FnProcessorSupplierFactory. processor-supplier-fn))
+
+(extend-type CljKStream
+  IKStreamProcessor
+  (processor
+    ([this processor-supplier-fn]
+     (processor this processor-supplier-fn []))
+    ([this processor-supplier-fn state-store-names]
+     (.process ^KStream (.kstream this)
+               ^ProcessorSupplier (processor-supplier processor-supplier-fn)
+               ^"[Ljava.lang.String;" (into-array String state-store-names)))))
