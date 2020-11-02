@@ -1,4 +1,4 @@
-(defproject com.rentpath/rp-jackdaw-clj "0.3.2"
+(defproject com.rentpath/rp-jackdaw-clj "0.3.3-SNAPSHOT"
   :description "Clojure Kafka components using Jackdaw"
   :url "https://gitthub.com/rentpath/rp-jackdaw-clj"
   :license {:name "MIT"
