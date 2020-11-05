@@ -1,11 +1,13 @@
 (ns rp.jackdaw.streams-extras
-  (:require [jackdaw.streams.interop])
+  (:require [jackdaw.streams.interop]
+            [jackdaw.streams.configured])
   (:import [org.apache.kafka.streams.kstream Merger Windows TimeWindows SessionWindows
                                              Suppressed Suppressed$BufferConfig KTable KStream]
            [org.apache.kafka.streams.processor ProcessorSupplier Processor]
            [org.apache.kafka.streams StreamsBuilder]
            [org.apache.kafka.streams.state StoreBuilder]
            [java.time Duration]
+           [jackdaw.streams.configured ConfiguredKStream]
            [jackdaw.streams.interop CljKTable CljKStream CljStreamsBuilder]))
 ;;
 ;; Provide some "extras" missing from Jackdaw
@@ -112,3 +114,14 @@
      (.process ^KStream (.kstream this)
                ^ProcessorSupplier (processor-supplier processor-supplier-fn)
                ^"[Ljava.lang.String;" (into-array String state-store-names)))))
+
+(extend-type ConfiguredKStream
+  IKStreamProcessor
+  (processor
+    ([this processor-supplier-fn]
+     (processor this processor-supplier-fn []))
+    ([this processor-supplier-fn state-store-names]
+     (let [clj-kstream (.kstream this)] ;;<- need CljKStream from ConfiguredKStream
+       (.process ^KStream (.kstream clj-kstream)
+                 ^ProcessorSupplier (processor-supplier processor-supplier-fn)
+                 ^"[Ljava.lang.String;" (into-array String state-store-names))))))
